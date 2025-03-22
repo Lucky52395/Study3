@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>限时问卷（最新链接版）</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px; 
+        }
+        .timer { 
+            font-size: 24px; 
+            color: red;
+        }
+        iframe { 
+            width: 100%; 
+            height: 500px; 
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>限时问卷</h1>
+    <p>剩余时间：<span id="timer" class="timer"></span></p>
+    <iframe id="surveyFrame"></iframe>
+
+    <script>
+        // 已更新你的最新链接（2024年最新版）
+        const stages = [
+            { link: "https://wj.qq.com/s2/19273206/mhbx/", time: 300 },    // 5分钟（链接1）
+            { link: "https://boyu.zone/app/android/download", time: 1800 }, // 30分钟（链接2）
+            { link: "https://wj.qq.com/s2/19273251/gr4d/", time: 600 }     // 10分钟（链接3）
+        ];
+
+        // 初始化状态
+        let currentStage = parseInt(localStorage.getItem('currentStage')) || 0;
+        let startTime = parseInt(localStorage.getItem('startTime')) || Date.now();
+        let totalTime = stages[currentStage].time;
+        let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        let remainingTime = totalTime - elapsedTime;
+
+        // 自动推进阶段
+        while (remainingTime <= 0 && currentStage < stages.length) {
+            currentStage++;
+            if (currentStage >= stages.length) break;
+            startTime = Date.now();
+            totalTime = stages[currentStage].time;
+            remainingTime = totalTime;
+        }
+
+        let timer;
+
+        function startStage() {
+            const stage = stages[currentStage];
+            document.getElementById("surveyFrame").src = stage.link;
+            startTimer(remainingTime > 0 ? remainingTime : stage.time);
+        }
+
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            localStorage.setItem('currentStage', currentStage);
+            localStorage.setItem('startTime', Date.now() - (totalTime - timeLeft) * 1000);
+
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = `${Math.floor(timeLeft / 60)}分${timeLeft % 60}秒`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    currentStage++;
+                    if (currentStage < stages.length) {
+                        localStorage.setItem('currentStage', currentStage);
+                        localStorage.setItem('startTime', Date.now());
+                        startStage();
+                    } else {
+                        alert("所有阶段已完成！");
+                        localStorage.clear();
+                    }
+                }
+            }, 1000);
+        }
+
+        startStage();
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('currentStage', currentStage);
+            localStorage.setItem('startTime', startTime);
+        });
+    </script>
+</body>
+</html>
